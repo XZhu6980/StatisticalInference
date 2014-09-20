@@ -1,0 +1,72 @@
+---
+output: pdf_document
+---
+### Statistical Inference Course Project Part 2
+
+Now in the second portion of the class, we're going to analyze the ToothGrowth data in the R datasets package. 
+
+#### 1. Load the ToothGrowth data and perform some basic exploratory data analyses. 
+```{r Loading}
+library(psych)
+library(ggplot2)
+library(gridExtra)
+library(datasets)
+data(ToothGrowth)
+attach(ToothGrowth)
+```
+```{r Exploring}
+suppplot<-ggplot(aes(x = supp, y = len), data = ToothGrowth) + geom_boxplot(aes(fill = supp))
+
+doseplot<-ggplot(aes(x = factor(dose), y =len), data = ToothGrowth) + 
+        geom_boxplot(aes(fill = factor(dose)))
+
+grid.arrange(suppplot, doseplot, ncol = 2)
+```
+
+#### 2. Provide a basic summary of the data.  
+```{r Summary}
+head(ToothGrowth)
+summary(ToothGrowth)
+dose<-as.factor(dose)
+describe(len)
+table(supp,dose)
+round(with(ToothGrowth, sapply(split(len, supp), mean)), 3)
+aggregate(len, list(dose), mean)
+aggregate(len, list(supp, dose), mean)
+aggregate(len, list(supp, dose), sd)
+```
+
+The ToothGrowth dataset explains the relation between the growth of teeth of guinea pigs at each of three dose levels of Vitamin C (0.5, 1 and 2 mg) with each of two delivery methods(orange juice and ascorbic acid).
+
+#### 3. Use confidence intervals and hypothesis tests to compare tooth growth by supp and dose. (Use the techniques from class even if there's other approaches worth considering) 
+```{r t.test}
+# T Test by supplemant type
+t.test(len ~ supp, data = ToothGrowth)
+
+# T test by dose level 
+Tooth.dose0.5_1.0 <- subset(ToothGrowth, dose %in% c(0.5, 1.0))
+Tooth.dose0.5_2.0 <- subset(ToothGrowth, dose %in% c(0.5, 2.0))
+Tooth.dose1.0_2.0 <- subset(ToothGrowth, dose %in% c(1.0, 2.0))
+
+t.test(len ~ dose, data = Tooth.dose0.5_1.0)
+t.test(len ~ dose, data = Tooth.dose0.5_2.0)
+t.test(len ~ dose, data = Tooth.dose1.0_2.0)
+
+# T test for supplement by dose level
+Tooth.dose0.5 <- subset(ToothGrowth, dose == 0.5)
+Tooth.dose1.0 <- subset(ToothGrowth, dose == 1.0)
+Tooth.dose2.0 <- subset(ToothGrowth, dose == 2.0)
+
+t.test(len ~ supp, data = Tooth.dose0.5)
+t.test(len ~ supp, data = Tooth.dose1.0)
+t.test(len ~ supp, data = Tooth.dose2.0)
+```
+For dose 0.5, the p-value of OJ in comparison to VC is 0.0064. Since it is less than 0.05 (strong presumption against null hypothesis), it means that there is a difference between both methods.
+
+For dose 1.0, the p-value of OJ in comparison to VC is 0.001. Since it is less than 0.05 (strong presumption against null hypothesis), it means that there is a difference between both methods.
+
+For dose 2.0, the p-value of OJ in comparison to VC is 0.064. Since it is greater than 0.05 (low presumption against null hypothesis), it means that there is a no that much of a difference between both methods.
+
+
+#### 4. State your conclusions and the assumptions needed for your conclusions. 
+With the values obtained it can be assumed that there is a different in the growth of the tooth while the doses are larger. By looking at the boxplot and the results, it can also be said that there is no other factor that will affect the growing process (it will depend greatly on the dose), in other words, the delivery methods are independent of the dose size.
